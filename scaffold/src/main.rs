@@ -5,12 +5,15 @@ use crate::config::log::init_tracing;
 use crate::config::pg::init_postgres_client;
 use clap::Parser;
 use crate::backend::app_router::run_backend_server;
+use crate::config::env::load_env;
 
 mod config;
 mod backend;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    load_env();
+    info!("📄 Environment variables loaded successfully.");
     init_tracing();
     info!("🔧 Initializing the Actix-Web server...");
 
