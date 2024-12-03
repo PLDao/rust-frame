@@ -1,8 +1,10 @@
 use sea_orm::DbConn;
 
+mod models;
 pub mod app_router;
-
-
+mod middleware;
+mod handlers;
+mod utils;
 
 #[derive(Clone)]
 pub struct AppState {
