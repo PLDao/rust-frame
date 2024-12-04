@@ -974,6 +974,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "frame-help"
+version = "1.39.2"
+dependencies = [
+ "bs58",
+ "clap",
+ "ring 0.16.20",
+ "serde",
+ "serde_json",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "funty"
 version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
