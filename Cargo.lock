@@ -2311,6 +2311,7 @@ dependencies = [
  "clap",
  "dotenv",
  "futures",
+ "futures-util",
  "hex",
  "jsonwebtoken",
  "rand 0.7.3",

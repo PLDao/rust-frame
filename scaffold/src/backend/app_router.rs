@@ -1,7 +1,8 @@
-use actix_web::{App, HttpServer, web, middleware,http};
+use actix_web::{App, HttpServer, web, middleware, http};
 use actix_cors::Cors;
 use sea_orm::DbConn;
 use crate::backend::AppState;
+use crate::backend::middleware::auth_middleware::Auth;
 
 pub async fn run_backend_server(
     pg_client: DbConn,
@@ -19,10 +20,11 @@ pub async fn run_backend_server(
                       .max_age(3600),
             )
             .wrap(middleware::Logger::default())
+            .wrap(Auth)
             .app_data(web::Data::new(AppState { pg_client: pg_client.clone() }))
-            // .service(transactions_scope())
-            // .service(block_scope())
-            // .default_service(web::route().to(not_found))
+        // .service(transactions_scope())
+        // .service(block_scope())
+        // .default_service(web::route().to(not_found))
     })
         .bind(("0.0.0.0", backend_port))?
         .run()
