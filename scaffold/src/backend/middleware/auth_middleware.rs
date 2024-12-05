@@ -70,10 +70,12 @@ impl<S, B> Service<ServiceRequest> for AuthMiddleware<S>
         let svc = self.service.clone();
         let path = req.path().to_string();
 
+        // 如果是跳过验证的路径，直接继续处理
         if is_ignored_path(&path) {
             return Box::pin(svc.call(req));
         }
 
+        // 提取 token 并进行验证
         let token = extract_token_from_headers(&req);
         if token.is_empty() {
             return Box::pin(async move {
@@ -87,9 +89,14 @@ impl<S, B> Service<ServiceRequest> for AuthMiddleware<S>
 
         Box::pin(async move {
             match verify_and_renew_jwt(&token) {
-                Ok(_) => {
-                    let fut = svc.call(req);
-                    fut.await
+                Ok(new_token) => {
+                    // 如果 token 被续签了，添加到响应头
+                    let mut response = svc.call(req).await?;
+                    response.headers_mut().insert(
+                        header::AUTHORIZATION,
+                        header::HeaderValue::from_str(&format!("Bearer {}", new_token)).unwrap(),
+                    );
+                    Ok(response)
                 }
                 Err(err) => {
                     error!("JWT verification failed: {:?}", err);
