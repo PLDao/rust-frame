@@ -22,6 +22,8 @@ pub async fn run_backend_server(
             .wrap(middleware::Logger::default())
             .wrap(Auth)
             .app_data(web::Data::new(AppState { pg_client: pg_client.clone() }))
+            // .route("/register", web::post().to(auth::register))
+            // .route("/login", web::post().to(auth::login))
         // .service(transactions_scope())
         // .service(block_scope())
         // .default_service(web::route().to(not_found))

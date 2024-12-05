@@ -31,6 +31,16 @@ impl Hash for String {}
 
 impl Hash for &str {}
 
+// password hash
+
+pub fn hash_password(password: &str) -> Result<String> {
+    Ok(hash(password, DEFAULT_COST)?)
+}
+
+pub fn verify_password(password: &str, hash: &str) -> bool {
+    verify(password, hash).unwrap()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -49,5 +59,12 @@ mod tests {
         println!("{}", hash);
         let hash = "+86 13818658534".hash();
         println!("{}", hash);
+    }
+    #[test]
+    fn test_hash_password() {
+        let password = "123456";
+        let hash = hash_password(password);
+        println!("{}", hash);
+        assert!(verify_password(password, &hash));
     }
 }
