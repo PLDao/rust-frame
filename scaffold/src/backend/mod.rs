@@ -5,6 +5,7 @@ pub mod app_router;
 mod middleware;
 mod handlers;
 mod utils;
+mod api;
 
 #[derive(Clone)]
 pub struct AppState {

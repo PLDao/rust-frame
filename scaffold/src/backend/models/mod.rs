@@ -6,4 +6,5 @@ pub mod api_keys;
 pub mod api_plans;
 pub mod api_usage_logs;
 pub mod api_users;
+pub mod email_verification_codes;
 pub mod sea_orm_active_enums;
