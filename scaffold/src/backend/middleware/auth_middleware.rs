@@ -10,7 +10,8 @@ use actix_web::body::BoxBody;
 
 use crate::backend::utils::jwt::verify_and_renew_jwt;
 
-const IGNORED_PATHS: [&str; 1] = ["/register"];
+// 忽略的路径: /register /ping
+const IGNORED_PATHS: [&str; 2] = ["/register", "/ping"];
 
 fn is_ignored_path(path: &str) -> bool {
     IGNORED_PATHS.iter().any(|&ignored| path.starts_with(ignored))
@@ -33,7 +34,7 @@ pub struct Auth;
 
 impl<S, B> Transform<S, ServiceRequest> for Auth
     where
-        S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
+        S: Service<ServiceRequest, Response=ServiceResponse<B>, Error=Error> + 'static,
         S::Future: 'static,
         B: 'static,
 {
@@ -56,7 +57,7 @@ pub struct AuthMiddleware<S> {
 
 impl<S, B> Service<ServiceRequest> for AuthMiddleware<S>
     where
-        S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
+        S: Service<ServiceRequest, Response=ServiceResponse<B>, Error=Error> + 'static,
         S::Future: 'static,
         B: 'static,
 {

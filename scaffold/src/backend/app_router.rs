@@ -1,8 +1,9 @@
-use actix_web::{App, HttpServer, web, middleware, http};
+use actix_web::{App, HttpServer, web, middleware, http, Responder, HttpResponse};
 use actix_cors::Cors;
 use sea_orm::DbConn;
 use crate::backend::AppState;
 use crate::backend::middleware::auth_middleware::Auth;
+use crate::backend::middleware::time::Timed;
 
 pub async fn run_backend_server(
     pg_client: DbConn,
@@ -20,8 +21,10 @@ pub async fn run_backend_server(
                       .max_age(3600),
             )
             .wrap(middleware::Logger::default())
+            .wrap(Timed)
             .wrap(Auth)
             .app_data(web::Data::new(AppState { pg_client: pg_client.clone() }))
+            .route("/ping", web::get().to(router_hello)) // 添加这个路由
             // .route("/register", web::post().to(auth::register))
             // .route("/login", web::post().to(auth::login))
         // .service(transactions_scope())
@@ -33,3 +36,7 @@ pub async fn run_backend_server(
         .await
 }
 
+
+pub async fn router_hello() -> impl Responder {
+    HttpResponse::Ok().body("Pong")
+}
