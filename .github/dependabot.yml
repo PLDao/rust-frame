@@ -5,8 +5,7 @@
 
 version: 2
 updates:
-  - package-ecosystem: "" # See documentation for possible values
-    directory: "/" # Location of package manifests
+  - package-ecosystem: "cargo"  # 对于 Rust 项目，使用 "cargo"
+    directory: "/"  # 指定 Cargo.toml 文件的位置，"/" 表示在项目根目录
     schedule:
-      interval: "weekly"
-  
+      interval: "daily"  # 设置更新检查的频率，可以是 "daily", "weekly" 或 "monthly"
