@@ -2,9 +2,10 @@
 
 pub mod prelude;
 
-pub mod api_keys;
-pub mod api_plans;
-pub mod api_usage_logs;
-pub mod api_users;
+pub mod auth_sessions;
 pub mod email_verification_codes;
+pub mod email_verifications;
+pub mod password_resets;
 pub mod sea_orm_active_enums;
+pub mod user_logs;
+pub mod users;

@@ -3,33 +3,35 @@
 use sea_orm::entity::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
-#[sea_orm(table_name = "api__usage_logs")]
+#[sea_orm(table_name = "auth_sessions")]
 pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i64,
-    pub key_id: i64,
-    pub timestamp: DateTime,
     #[sea_orm(column_type = "Text")]
-    pub endpoint: String,
-    pub response_time_ms: Option<i32>,
-    pub status_code: Option<i32>,
+    pub user_id: String,
+    #[sea_orm(column_type = "Text", unique)]
+    pub token: String,
+    #[sea_orm(column_type = "Text", nullable)]
+    pub user_agent: Option<String>,
+    pub expires_at: DateTime,
+    pub created_at: DateTime,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
     #[sea_orm(
-        belongs_to = "super::api_keys::Entity",
-        from = "Column::KeyId",
-        to = "super::api_keys::Column::Id",
+        belongs_to = "super::users::Entity",
+        from = "Column::UserId",
+        to = "super::users::Column::UserId",
         on_update = "NoAction",
         on_delete = "Cascade"
     )]
-    ApiKeys,
+    Users,
 }
 
-impl Related<super::api_keys::Entity> for Entity {
+impl Related<super::users::Entity> for Entity {
     fn to() -> RelationDef {
-        Relation::ApiKeys.def()
+        Relation::Users.def()
     }
 }
 

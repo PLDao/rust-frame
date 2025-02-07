@@ -2,14 +2,14 @@ use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, 
 use serde::{Deserialize, Serialize};
 use std::env;
 use chrono::{Utc, Duration};
-use crate::backend::models::sea_orm_active_enums::RoleType;
+use crate::backend::models::sea_orm_active_enums::UserRoleType;
 
 /// 定义 JWT 的负载
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Claims {
     pub user_id: String, // 用户 ID
     pub username: String, // 用户链上地址
-    pub role: Option<RoleType>,
+    pub role: Option<UserRoleType>,
     pub exp: usize,  // 过期时间戳 (Unix 时间)
 }
 
@@ -83,7 +83,7 @@ mod tests {
         let new_user = Claims {
             user_id: "user123".to_string(),
             username: "test_user".to_string(),
-            role: Some(RoleType::Admin),
+            role: Some(UserRoleType::Admin),
             exp: (Utc::now().timestamp() as usize + 60 * 60 * 24), // 1天后过期
         };
 
@@ -103,7 +103,7 @@ mod tests {
         let new_user = Claims {
             user_id: "user123".to_string(),
             username: "test_user".to_string(),
-            role: Some(RoleType::Admin),
+            role: Some(UserRoleType::Admin),
             exp: (Utc::now().timestamp() as usize + 60  * 3), // 3分钟后过期
         };
 

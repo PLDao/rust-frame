@@ -1,5 +1,6 @@
 mod send_email;
 mod send_phone;
+mod handle_email_code;
 
 use actix_web::{Scope, web};
 use crate::backend::api::code::send_email::send_email_code;

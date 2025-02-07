@@ -7,8 +7,8 @@ use lettre::Message;
 use lettre::SmtpTransport;
 use lettre::Transport;
 use tracing::info;
+use crate::backend::api::code::handle_email_code::insert_email_code;
 use crate::backend::AppState;
-use crate::backend::handlers::handle_code::insert_email_code;
 use crate::config::lazy_config::get_mailer;
 
 #[derive(Deserialize, Debug)]

@@ -1,9 +1,8 @@
 use sea_orm::DbConn;
 
-mod models;
+pub mod models;
 pub mod app_router;
 mod middleware;
-mod handlers;
 mod utils;
 mod api;
 

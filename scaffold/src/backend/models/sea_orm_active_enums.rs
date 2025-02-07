@@ -3,9 +3,24 @@
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
+
+#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
+#[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "log_action_type")]
+pub enum LogActionType {
+    #[sea_orm(string_value = "CHANGE_PASSWORD")]
+    ChangePassword,
+    #[sea_orm(string_value = "LOGIN")]
+    Login,
+    #[sea_orm(string_value = "LOGOUT")]
+    Logout,
+    #[sea_orm(string_value = "RESET_PASSWORD")]
+    ResetPassword,
+    #[sea_orm(string_value = "UPDATE_PROFILE")]
+    UpdateProfile,
+}
 #[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum,Serialize, Deserialize)]
-#[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "role_type")]
-pub enum RoleType {
+#[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "user_role_type")]
+pub enum UserRoleType {
     #[sea_orm(string_value = "admin")]
     Admin,
     #[sea_orm(string_value = "user")]
