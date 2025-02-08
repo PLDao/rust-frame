@@ -3,7 +3,6 @@
 pub mod prelude;
 
 pub mod auth_sessions;
-pub mod email_verification_codes;
 pub mod email_verifications;
 pub mod password_resets;
 pub mod sea_orm_active_enums;

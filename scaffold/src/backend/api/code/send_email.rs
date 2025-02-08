@@ -1,18 +1,17 @@
-use actix_web::{web, HttpResponse, Responder};
+use actix_web::{web, HttpResponse};
 use serde::Deserialize;
-use sea_orm::{DatabaseConnection, DbConn};
+use sea_orm::DbConn;
 use rand::{thread_rng, Rng};
 use rand::distributions::Alphanumeric;
 use lettre::Message;
-use lettre::SmtpTransport;
 use lettre::Transport;
-use tracing::info;
 use crate::backend::api::code::handle_email_code::insert_email_code;
 use crate::backend::AppState;
 use crate::config::lazy_config::get_mailer;
 
 #[derive(Deserialize, Debug)]
 pub struct EmailRequest {
+    pub username: String,
     pub email: String,
 }
 
@@ -53,7 +52,7 @@ pub async fn send_email_code(
     let code = generate_code(6); // 生成 6 位验证码
 
     // 存储验证码到 PostgreSQL
-    if let Err(e) = insert_email_code(client, &request.email, &code, 600).await {
+    if let Err(e) = insert_email_code(client, &request.username, &request.email, &code, 600).await {
         return HttpResponse::InternalServerError().body(format!("Failed to store code: {}", e));
     }
 
