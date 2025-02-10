@@ -64,7 +64,7 @@ mod tests {
     fn test_hash_password() {
         let password = "123456";
         let hash = hash_password(password);
-        println!("{}", hash);
-        assert!(verify_password(password, &hash));
+        println!("{:?}", hash);
+        assert!(verify_password(password, &hash.unwrap()));
     }
 }
