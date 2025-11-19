@@ -10,11 +10,12 @@ use actix_web::body::BoxBody;
 
 use crate::backend::utils::jwt::verify_and_renew_jwt;
 
-// 忽略的路径: /register /ping
-const IGNORED_PATHS: [&str; 4] = ["/register", "/ping", "/code","/qr-login",];
+// 忽略的路径: /register /ping /code /qr-login /ws (WebSocket)
+// const IGNORED_PATHS: [&str; 5] = ["/register", "/ping", "/code", "/qr-login", "/ws"];
 
 fn is_ignored_path(path: &str) -> bool {
-    IGNORED_PATHS.iter().any(|&ignored| path.starts_with(ignored))
+    // IGNORED_PATHS.iter().any(|&ignored| path.starts_with(ignored))
+    false
 }
 
 fn extract_token_from_headers(req: &ServiceRequest) -> String {

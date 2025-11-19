@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>扫码登录 - WebSocket版本（实时推送）</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 450px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 5px 15px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        
+        .qr-container {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+        }
+        
+        #qrImage {
+            max-width: 300px;
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        
+        .status.connected {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .status.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e7f3ff;
+            border-radius: 10px;
+            font-size: 13px;
+            color: #004085;
+            text-align: left;
+        }
+        
+        .info strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .ws-status {
+            padding: 8px 15px;
+            margin-top: 15px;
+            border-radius: 8px;
+            font-size: 12px;
+            display: inline-block;
+        }
+        
+        .ws-status.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .ws-status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .comparison {
+            margin-top: 20px;
+            padding: 15px;
+            background: #fff9e6;
+            border-radius: 10px;
+            font-size: 13px;
+        }
+        
+        .comparison table {
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .comparison td {
+            padding: 5px;
+            text-align: left;
+        }
+        
+        .comparison td:first-child {
+            font-weight: bold;
+            width: 120px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 扫码登录</h1>
+        <p class="subtitle">使用App扫描二维码登录</p>
+        <div class="badge">⚡ WebSocket 实时推送版</div>
+        
+        <div class="qr-container" id="qrContainer" style="display: none;">
+            <img id="qrImage" alt="二维码">
+            <div class="status connected" id="status">
+                <span class="loading"></span>
+                <span>WebSocket连接中...</span>
+            </div>
+            <div class="ws-status disconnected" id="wsStatus">
+                ⚫ WebSocket: 未连接
+            </div>
+        </div>
+        
+        <button onclick="generateQR()" id="generateBtn">生成二维码</button>
+        
+        <div class="comparison">
+            <strong>✨ WebSocket vs HTTP轮询：</strong>
+            <table>
+                <tr>
+                    <td>响应延迟：</td>
+                    <td><strong>&lt;100ms</strong> vs 2秒</td>
+                </tr>
+                <tr>
+                    <td>网络请求：</td>
+                    <td><strong>1次</strong> vs 150次/5分钟</td>
+                </tr>
+                <tr>
+                    <td>服务器负载：</td>
+                    <td><strong>极低</strong> vs 高</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div class="info">
+            <strong>🚀 WebSocket优势：</strong>
+            • 即时推送，无延迟<br>
+            • 单次连接，省资源<br>
+            • 用户体验极佳<br>
+            • 服务器负载更低
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/v1';
+        const WS_BASE = 'ws://localhost:8080/v1';
+        let sessionId = null;
+        let ws = null;
+        let connectTime = null;
+
+        // 生成二维码
+        async function generateQR() {
+            const btn = document.getElementById('generateBtn');
+            const container = document.getElementById('qrContainer');
+            const statusEl = document.getElementById('status');
+            const qrImage = document.getElementById('qrImage');
+            
+            btn.disabled = true;
+            btn.textContent = '生成中...';
+            
+            // 关闭之前的WebSocket连接
+            if (ws) {
+                ws.close();
+            }
+            
+            try {
+                // 1. 生成二维码
+                const response = await fetch(`${API_BASE}/qr-login/generate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ client_info: 'web-websocket' })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('生成二维码失败');
+                }
+                
+                const data = await response.json();
+                sessionId = data.session_id;
+                
+                // 直接使用后端返回的base64图片
+                qrImage.src = data.qr_image;
+                
+                container.style.display = 'block';
+                statusEl.className = 'status connected';
+                statusEl.innerHTML = '<span class="loading"></span><span>连接WebSocket中...</span>';
+                
+                btn.textContent = '重新生成';
+                btn.disabled = false;
+                
+                console.log('✅ 二维码已生成:', {
+                    session_id: data.session_id,
+                    expires_in: data.expires_in,
+                    qr_data: data.qr_data
+                });
+                
+                // 2. 建立WebSocket连接
+                connectWebSocket(sessionId);
+                
+            } catch (error) {
+                console.error('❌ 生成失败:', error);
+                statusEl.className = 'status error';
+                statusEl.textContent = '❌ 生成失败: ' + error.message;
+                btn.disabled = false;
+                btn.textContent = '重新生成';
+            }
+        }
+
+        // 建立WebSocket连接
+        function connectWebSocket(sessionId) {
+            const statusEl = document.getElementById('status');
+            const wsStatusEl = document.getElementById('wsStatus');
+            
+            console.log('🔌 连接WebSocket:', `${WS_BASE}/ws/qr/${sessionId}`);
+            connectTime = Date.now();
+            
+            ws = new WebSocket(`${WS_BASE}/ws/qr/${sessionId}`);
+            
+            ws.onopen = () => {
+                console.log('✅ WebSocket连接成功');
+                wsStatusEl.className = 'ws-status connected';
+                wsStatusEl.textContent = '🟢 WebSocket: 已连接';
+                
+                statusEl.className = 'status pending';
+                statusEl.innerHTML = '<span class="loading"></span><span>⏳ 等待扫码中...</span>';
+            };
+            
+            ws.onmessage = (event) => {
+                const responseTime = Date.now() - connectTime;
+                console.log(`📩 收到消息 (${responseTime}ms):`, event.data);
+                
+                try {
+                    const data = JSON.parse(event.data);
+                    
+                    if (data.status === 'connected') {
+                        console.log('✅ WebSocket握手完成');
+                    } else if (data.status === 'confirmed') {
+                        // 登录成功
+                        statusEl.className = 'status success';
+                        statusEl.innerHTML = `✅ 登录成功！<br><small>响应时间: ${responseTime}ms（几乎实时！）</small>`;
+                        
+                        // 保存token
+                        if (data.web_token) {
+                            localStorage.setItem('token', data.web_token);
+                            console.log('✅ Token已保存');
+                        }
+                        
+                        // 关闭连接
+                        ws.close();
+                        
+                        // 提示用户
+                        setTimeout(() => {
+                            alert(`✅ 登录成功！\n\n响应时间: ${responseTime}ms\n使用WebSocket实现即时推送！`);
+                        }, 500);
+                        
+                    } else if (data.status === 'rejected') {
+                        statusEl.className = 'status error';
+                        statusEl.textContent = '❌ 用户拒绝登录';
+                        ws.close();
+                        
+                    } else if (data.status === 'expired') {
+                        // 服务器检测到session过期，主动通知
+                        statusEl.className = 'status error';
+                        statusEl.innerHTML = '⏰ 二维码已过期<br><small>服务器已自动断开连接</small>';
+                        ws.close();
+                        console.log('⏰ Session过期，服务器主动关闭连接');
+                    }
+                } catch (e) {
+                    console.error('❌ 解析消息失败:', e);
+                }
+            };
+            
+            ws.onerror = (error) => {
+                console.error('❌ WebSocket错误:', error);
+                wsStatusEl.className = 'ws-status disconnected';
+                wsStatusEl.textContent = '⚫ WebSocket: 连接错误';
+                
+                statusEl.className = 'status error';
+                statusEl.textContent = '❌ WebSocket连接失败';
+            };
+            
+            ws.onclose = (event) => {
+                console.log('🔌 WebSocket连接已关闭', event.code, event.reason);
+                wsStatusEl.className = 'ws-status disconnected';
+                wsStatusEl.textContent = '⚫ WebSocket: 已断开';
+            };
+            
+            // 5分钟后超时
+            setTimeout(() => {
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    ws.close();
+                    statusEl.className = 'status error';
+                    statusEl.textContent = '⏰ 二维码已过期';
+                }
+            }, 300000);
+        }
+
+        // 页面卸载时关闭WebSocket
+        window.addEventListener('beforeunload', () => {
+            if (ws) {
+                ws.close();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -7,6 +7,7 @@ use crate::backend::AppState;
 use crate::backend::api::qr_login::handle_qr_session::{find_session_by_id, update_session_confirmed};
 use crate::backend::models::users;
 use crate::backend::utils::jwt::{Claims, create_jwt, verify_jwt};
+use crate::backend::ws_manager::WsManager;
 
 #[derive(Deserialize, Debug)]
 pub struct ConfirmLoginRequest {
@@ -16,6 +17,7 @@ pub struct ConfirmLoginRequest {
 
 pub async fn confirm_login(
     state: web::Data<AppState>,
+    ws_manager: web::Data<WsManager>,
     request: web::Json<ConfirmLoginRequest>,
 ) -> HttpResponse {
     info!("Received confirm login request for session: {}", request.session_id);
@@ -85,7 +87,10 @@ pub async fn confirm_login(
         return HttpResponse::InternalServerError().body(format!("Failed to update session: {}", e));
     }
     
-    info!("Login confirmed for session: {}", request.session_id);
+    // 8. 🔔 通过WebSocket推送状态更新
+    ws_manager.notify_status(&request.session_id, "confirmed", Some(&web_token)).await;
+    info!("✅ Login confirmed and WebSocket notified for session: {}", request.session_id);
+    
     HttpResponse::Ok()
         .content_type("application/json")
         .body(r#"{"success":true,"message":"Login confirmed successfully"}"#)

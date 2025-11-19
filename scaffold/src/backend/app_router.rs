@@ -10,13 +10,17 @@ use crate::backend::api::auth::auth_scope;
 // use crate::backend::api::admin::admin_scope;
 // use crate::backend::api::logs::logs_scope;
 use crate::backend::api::code::code_scope;
-use crate::backend::api::qr_login::qr_login_scope;
+use crate::backend::api::qr_login::{qr_login_scope, ws_qr_route};
+use crate::backend::ws_manager::WsManager;
 
 pub async fn run_backend_server(
     pg_client: DbConn,
     backend_port: u16,
 ) -> std::io::Result<()> {
     info!("🌐 Starting HTTP server on 0.0.0.0:{}", backend_port);
+    
+    // 创建WebSocket管理器
+    let ws_manager = WsManager::new();
     
     let server = HttpServer::new(move || {
         App::new()
@@ -30,19 +34,44 @@ pub async fn run_backend_server(
                       .max_age(3600),
             )
             .wrap(middleware::Logger::default())
-            .wrap(Timed)
-            .wrap(Auth)
             .app_data(web::Data::new(AppState { pg_client: pg_client.clone() }))
-            .route("/ping", web::get().to(router_hello))
-            .service(auth_scope())     // 用户认证 API
-            .service(code_scope())     // 验证码 API
-            .service(qr_login_scope()) // 扫码登录 API
+            .app_data(web::Data::new(ws_manager.clone()))
+            // ==================== v1 API: 公开接口（不需要认证）====================
+            .service(
+                web::scope("/v1")
+                    .wrap(Timed)
+                    .route("/ping", web::get().to(router_hello))
+                    .service(auth_scope())     // 用户注册/登录
+                    .service(code_scope())     // 验证码
+                    .service(qr_login_scope()) // 扫码登录（生成二维码、查询状态）
+                    // WebSocket路由
+                    .route("/ws/qr/{session_id}", ws_qr_route())
+            )
+            // ==================== v2 API: 需要认证的接口 ====================
+            .service(
+                web::scope("/v2")
+                    .wrap(Timed)
+                    .wrap(Auth)
+                    // 这里放需要认证的API
+                    // .service(user_scope())     // 用户信息管理
+                    // .service(admin_scope())    // 管理员接口
+            )
     })
         .bind(("0.0.0.0", backend_port))?;
     
     info!("✅ Server listening on http://0.0.0.0:{}", backend_port);
-    info!("📡 QR Login API: http://localhost:{}/qr-login/generate", backend_port);
-    info!("🏓 Health check: http://localhost:{}/ping", backend_port);
+    info!("");
+    info!("� API Routes:");
+    info!("  ├─ v1 (公开接口，无需认证):");
+    info!("  │  ├─ 🏓 Health: http://localhost:{}/v1/ping", backend_port);
+    info!("  │  ├─ �📡 QR Login: http://localhost:{}/v1/qr-login/generate", backend_port);
+    info!("  │  ├─ 🔌 WebSocket: ws://localhost:{}/v1/ws/qr/{{session_id}}", backend_port);
+    info!("  │  ├─ 🔐 Auth: http://localhost:{}/v1/auth/*", backend_port);
+    info!("  │  └─ 📧 Code: http://localhost:{}/v1/code/*", backend_port);
+    info!("  │");
+    info!("  └─ v2 (需要认证):");
+    info!("     └─ (暂无，可在此添加需要JWT认证的接口)", );
+    info!("");
     
     server.run().await
 }
