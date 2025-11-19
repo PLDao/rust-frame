@@ -2,7 +2,7 @@
 version = "1.39.2"
 authors = ["pureblackalex@google.com"]
 edition = "2021"
-rust-version = "1.80.0"
+rust-version = "1.90.0"
 repository = "https://github.com/pldao/rust-frame"
 license = "MIT OR Apache-2.0"
 
