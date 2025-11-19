@@ -17,7 +17,11 @@ image = "0.25"
 
 #### 新增文件
 - `scaffold/examples/qr_login_simple.html` - 超简单的前端示例
-- `QR_IMAGE_API.md` - 后端图片生成API文档
+
+#### 优化文档
+- `QR_LOGIN.md` - 主文档（包含架构图、流程图、状态机、快速开始）
+- `QR_LOGIN_API.md` - API详细文档（完整接口定义和示例代码）
+- 删除冗余文档，保留核心2个文档
 
 #### API响应变化
 ```json
