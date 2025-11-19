@@ -16,7 +16,9 @@ pub async fn run_backend_server(
     pg_client: DbConn,
     backend_port: u16,
 ) -> std::io::Result<()> {
-    HttpServer::new(move || {
+    info!("🌐 Starting HTTP server on 0.0.0.0:{}", backend_port);
+    
+    let server = HttpServer::new(move || {
         App::new()
             .wrap(Cors::default()
                       .allow_any_origin()
@@ -36,9 +38,13 @@ pub async fn run_backend_server(
             .service(code_scope())     // 验证码 API
             .service(qr_login_scope()) // 扫码登录 API
     })
-        .bind(("0.0.0.0", backend_port))?
-        .run()
-        .await
+        .bind(("0.0.0.0", backend_port))?;
+    
+    info!("✅ Server listening on http://0.0.0.0:{}", backend_port);
+    info!("📡 QR Login API: http://localhost:{}/qr-login/generate", backend_port);
+    info!("🏓 Health check: http://localhost:{}/ping", backend_port);
+    
+    server.run().await
 }
 
 pub async fn router_hello() -> impl Responder {
