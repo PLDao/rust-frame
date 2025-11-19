@@ -8,3 +8,4 @@ pub mod password_resets;
 pub mod sea_orm_active_enums;
 pub mod user_logs;
 pub mod users;
+pub mod qr_login_sessions;

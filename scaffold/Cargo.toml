@@ -44,3 +44,4 @@ futures-util = "0.3.31"
 once_cell.workspace = true
 
 lettre.workspace = true
+uuid = { version = "1.10", features = ["v4", "serde"] }

@@ -5,3 +5,4 @@ pub use super::email_verifications::Entity as EmailVerifications;
 pub use super::password_resets::Entity as PasswordResets;
 pub use super::user_logs::Entity as UserLogs;
 pub use super::users::Entity as Users;
+pub use super::qr_login_sessions::Entity as QrLoginSessions;

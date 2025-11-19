@@ -10,6 +10,7 @@ use crate::backend::api::auth::auth_scope;
 // use crate::backend::api::admin::admin_scope;
 // use crate::backend::api::logs::logs_scope;
 use crate::backend::api::code::code_scope;
+use crate::backend::api::qr_login::qr_login_scope;
 
 pub async fn run_backend_server(
     pg_client: DbConn,
@@ -18,8 +19,8 @@ pub async fn run_backend_server(
     HttpServer::new(move || {
         App::new()
             .wrap(Cors::default()
-                      .allowed_origin("http://127.0.0.1:3000")
-                      .allowed_origin("http://localhost:3000")
+                      .allow_any_origin()
+                      .allow_any_header()
                       .send_wildcard()
                       .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
                       .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
@@ -32,10 +33,8 @@ pub async fn run_backend_server(
             .app_data(web::Data::new(AppState { pg_client: pg_client.clone() }))
             .route("/ping", web::get().to(router_hello))
             .service(auth_scope())     // 用户认证 API
-            // .service(password_scope()) // 密码重置 API
-            // .service(admin_scope())    // 管理员 API
-            // .service(logs_scope())     // 日志 API
             .service(code_scope())     // 验证码 API
+            .service(qr_login_scope()) // 扫码登录 API
     })
         .bind(("0.0.0.0", backend_port))?
         .run()

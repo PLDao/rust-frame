@@ -11,7 +11,7 @@ use actix_web::body::BoxBody;
 use crate::backend::utils::jwt::verify_and_renew_jwt;
 
 // 忽略的路径: /register /ping
-const IGNORED_PATHS: [&str; 3] = ["/register", "/ping", "/code"];
+const IGNORED_PATHS: [&str; 4] = ["/register", "/ping", "/code","/qr-login",];
 
 fn is_ignored_path(path: &str) -> bool {
     IGNORED_PATHS.iter().any(|&ignored| path.starts_with(ignored))

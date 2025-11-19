@@ -6,6 +6,6 @@ pub struct Args {
     #[arg(short, long, default_value = "postgres://postgres:postgres@localhost:5432/postgres")]
     pub(crate) pgsql_url: String,
     /// Server port
-    #[arg(short, long, default_value_t = 3000)]
+    #[arg(short, long, default_value_t = 8080)]
     pub(crate) backend_port: u16,
 }
